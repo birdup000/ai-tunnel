@@ -19,7 +19,7 @@ const Title = styled.h1`
 function App() {
   return (
     <AppContainer>
-      <Title>My App</Title>
+      <Title>The Panel</Title>
       <Panel />
     </AppContainer>
   );

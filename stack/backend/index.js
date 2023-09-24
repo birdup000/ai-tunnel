@@ -20,17 +20,20 @@ app.get('/servers', async (req, reply) => {
 app.get('/servers/:id', async (req, reply) => {
     const { id } = req.params;
     try {
-        const server = servers.find(server => server.id === id);
-        if (!server) {
-            reply.code(404).send({ message: 'Server not found' });
-        } else {
-            reply.send({ server });
-        }
+      const server = servers.find(server => server.id === id);
+      if (!server) {
+        reply.code(404).send({ message: 'Server not found' });
+      } else {
+        const serverData = fs.readFileSync('servers.json', 'utf-8');
+        const serverJson = JSON.parse(serverData);
+        const selectedServer = serverJson.servers.find(server => server.id === id);
+        reply.send({ server: selectedServer });
+      }
     } catch (error) {
-        reply.code(500).send(error);
+      reply.code(500).send(error);
     }
-});
-
+  });
+  
 app.post('/servers', async (req, reply) => {
     const { name, url, headers, curlRequest } = req.body;
 
