@@ -100,6 +100,7 @@ const ServerCodeContainer = styled.div`
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   overflow: auto;
   color: white;
+  max-width: 1000px;
 `;
 
 const ServerCode = styled.pre`
@@ -358,24 +359,6 @@ function Panel() {
   </Button>
 </ServerCodeContainer>
     </div>
-  ))}
-  {servers.map(server => (
-    <ServerItem key={server.id}>
-      <input
-        type="text"
-        value={server.name}
-        onChange={e => {
-          const updatedServers = servers.map(s => {
-            if (s.id === server.id) {
-              return { ...s, name: e.target.value };
-            }
-            return s;
-          });
-          setServers(updatedServers);
-        }}
-      />
-      <Button onClick={() => deleteServer(server.id)}>Delete</Button>
-    </ServerItem>
   ))}
   <ServerItem>
     <input
