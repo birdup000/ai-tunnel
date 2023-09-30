@@ -2,20 +2,30 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 
+
 const DashboardContainer = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  background-color: #000000;
+  padding: 40px;
 `;
 
-const SidebarContainer = styled.div`
-  width: 300px;
-  background-color: #191e34;
+const SidebarContainer = styled.nav`
+  background-color: #001d3d;
+  color: #ffffff;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid #29abe2;
+  border-radius: 16px;
 `;
 
 const SidebarHeading = styled.h1`
+  font-size: 32px;
+  margin-bottom: 30px;
   color: #ffffff;
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-family: "Montserrat", sans-serif;
 `;
 
 const SidebarList = styled.ul`
@@ -25,122 +35,123 @@ const SidebarList = styled.ul`
 `;
 
 const SidebarListItem = styled.li`
-  color: #ffffff;
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 24px;
+  margin-bottom: 20px;
   cursor: pointer;
+  transition: color 0.3s;
+  font-family: "Montserrat", sans-serif;
 
   &:hover {
-    color: #ffac00;
+    color: #29abe2;
+  }
+
+  &.selected {
+    color: #29abe2;
+    font-weight: bold;
   }
 `;
 
 const ContentContainer = styled.div`
-  flex: 1;
-  padding: 30px;
+  background-color: #0a0f22;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 `;
 
 const SectionHeading = styled.h2`
-  margin-bottom: 20px;
-  font-size: 22px;
-  color: #333;
+  margin-bottom: 30px;
+  font-size: 28px;
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif;
 `;
 
 const ServerListContainer = styled.div`
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 `;
 
 const ServerItem = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+`;
 
-  input {
-    margin-right: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-  }
+const ServerInput = styled.input`
+  margin-right: 10px;
+  padding: 10px;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  background-color: transparent;
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif;
 
-  textarea {
-    margin-top: 8px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    resize: vertical;
+  &:focus {
+    border-color: #29abe2;
+    box-shadow: 0 0 5px rgba(41, 171, 226, 0.2);
   }
 `;
 
 const ServerCodeContainer = styled.div`
-  margin-bottom: 10px;
-
-  pre {
-    font-family: "Courier New", monospace;
-    background-color: #f5f5f5;
-    padding: 10px;
-    font-size: 14px;
-    color: #333;
-  }
-  
-  textarea {
-    margin-top: 8px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    resize: vertical;
-  }
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #0a0f22;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: auto;
+  color: white;
 `;
 
-const ServerCode = styled.code`
-  font-family: "Courier New", monospace;
-  background-color: #f5f5f5;
+const ServerCode = styled.pre`
+  font-family: "Roboto Mono", monospace;
   padding: 10px;
-  display: block;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #000000;
   white-space: pre-wrap;
-  font-size: 14px;
-  color: #333;
 `;
 
 const StyledTextarea = styled.textarea`
   width: 100%;
   height: 200px;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
+  background-color: #0a0f22;
+  border: 2px solid #ffffff;
   padding: 10px;
-  font-family: "Courier New", monospace;
-  color: #333;
+  font-family: "Roboto Mono", monospace;
+  color: #ffffff;
   font-size: 14px;
+  resize: none;
 `;
 
 const Select = styled.select`
   margin-right: 10px;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 2px solid #ffffff;
   border-radius: 4px;
   font-size: 16px;
-  color: #333;
-  background-color: #fff;
+  color: #ffffff;
+  background-color: #0a0f22;
+  font-family: "Montserrat", sans-serif;
 `;
 
 const Button = styled.button`
   padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
+  background-color: #29abe2;
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
+  transition: background-color 0.3s;
+  font-family: "Montserrat", sans-serif;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #1e94cc;
   }
 
   &:disabled {
-    background-color: #ccc;
+    background-color: #555555;
     cursor: not-allowed;
   }
 `;
