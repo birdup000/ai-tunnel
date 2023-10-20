@@ -171,7 +171,7 @@ function Panel() {
   }, []);
 
   useEffect(() => {
-    const eventSource = new EventSource("http://localhost:8000/v1/chat/events");
+    const eventSource = new EventSource("https://ai-tunnel-backend.birdup.link/v1/chat/events");
 
     eventSource.addEventListener("message", messageHandler);
 
@@ -183,7 +183,7 @@ function Panel() {
 
   const fetchServerList = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/servers");
+      const response = await axios.get("https://ai-tunnel-backend.birdup.link/servers");
       setServers(response.data.servers);
     } catch (error) {
       console.error(error);
@@ -192,7 +192,7 @@ function Panel() {
 
   const addServer = async () => {
     try {
-      const response = await axios.post("http://localhost:8000/servers", {
+      const response = await axios.post("https://ai-tunnel-backend.birdup.link/servers", {
         name: newServerName,
         code: curlRequest,
         headers: {},
@@ -207,7 +207,7 @@ function Panel() {
 
   const deleteServer = async serverId => {
     try {
-      await axios.delete(`http://localhost:8000/servers/${serverId}`);
+      await axios.delete(`https://ai-tunnel-backend.birdup.link/servers/${serverId}`);
       setServers(prevServers =>
         prevServers.filter(server => server.id !== serverId)
       );
@@ -224,7 +224,7 @@ function Panel() {
       }
 
       const response = await axios.post(
-        `http://localhost:8000/v1/chat/completions`,
+        `https://ai-tunnel-backend.birdup.link/v1/chat/completions`,
         {
           serverId: selectedServer,
           payload: {
@@ -257,7 +257,7 @@ function Panel() {
 
   const executeCurlRequest = async () => {
     try {
-      const response = await axios.post("http://localhost:8000/curl", {
+      const response = await axios.post("https://ai-tunnel-backend.birdup.link/curl", {
         request: curlRequest,
       });
       setResponse(response.data);
@@ -279,7 +279,7 @@ function Panel() {
 
   const updateServerCode = async (serverId, code) => {
     try {
-      await axios.put(`http://localhost:8000/servers/${serverId}`, {
+      await axios.put(`https://ai-tunnel-backend.birdup.link/servers/${serverId}`, {
         code: code,
       });
       const updatedServers = servers.map(server => {
