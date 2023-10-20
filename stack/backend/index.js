@@ -117,7 +117,7 @@ app.post('/curl', async (req, reply) => {
     }
 });
 
-app.listen(8000, (err, address) => {
+app.listen(process.env.PORT, (err, address) => {
     if (err) {
         console.error(err);
         process.exit(1);
