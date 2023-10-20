@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const app = fastify();
 
-const serversData = fs.readFileSync('servers.json', 'utf-8');
+const serversData = fs.readFileSync('data/servers.json', 'utf-8');
 let servers = serversData ? JSON.parse(serversData).servers : [];
 
 app.register(require('@fastify/cors'));
@@ -24,7 +24,7 @@ app.get('/servers/:id', async (req, reply) => {
       if (!server) {
         reply.code(404).send({ message: 'Server not found' });
       } else {
-        const serverData = fs.readFileSync('servers.json', 'utf-8');
+        const serverData = fs.readFileSync('data/servers.json', 'utf-8');
         const serverJson = JSON.parse(serverData);
         const selectedServer = serverJson.servers.find(server => server.id === id);
         reply.send({ server: selectedServer });
@@ -47,7 +47,7 @@ app.post('/servers', async (req, reply) => {
         };
 
         servers.push(newServer);
-        fs.writeFileSync('servers.json', JSON.stringify({ servers }));
+        fs.writeFileSync('data/servers.json', JSON.stringify({ servers }));
 
         reply.send({ server: newServer });
     } catch (error) {
@@ -66,7 +66,7 @@ app.put('/servers/:id', async (req, reply) => {
             reply.code(404).send({ message: 'Server not found' });
         } else {
             server.code = code;
-            fs.writeFileSync('servers.json', JSON.stringify({ servers }));
+            fs.writeFileSync('data/servers.json', JSON.stringify({ servers }));
             reply.send({ server });
         }
     } catch (error) {
@@ -79,7 +79,7 @@ app.delete('/servers/:id', async (req, reply) => {
 
     try {
         servers = servers.filter(server => server.id !== id);
-        fs.writeFileSync('servers.json', JSON.stringify({ servers }));
+        fs.writeFileSync('data/servers.json', JSON.stringify({ servers }));
         reply.send({ message: 'Server deleted successfully' });
     } catch (error) {
         reply.code(500).send(error);
