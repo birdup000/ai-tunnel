@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm i -g serve && npm ci --omit=dev
 COPY . .
 RUN npm run build --production
-CMD ["serve", "-s build"]
+CMD serve -s build
