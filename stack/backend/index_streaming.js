@@ -142,7 +142,6 @@ app.post('/v1/chat/completions', async (req, reply) => {
       model: payload.model,
       choices: [
         {
-          index: 0,
           message: {
             role: "assistant",
             content: responseMessage.choices[0].content,
@@ -153,8 +152,9 @@ app.post('/v1/chat/completions', async (req, reply) => {
     };
 
     if (payload.stream) {
-      reply.type("text/event-stream");
-      reply.raw.write(`data: ${JSON.stringify(response)}\n\n`);
+      reply
+        .type("text/event-stream")
+        .send(`data: ${JSON.stringify(response)}\n\n`);
 
       const words = responseMessage.choices[0].content.split(" ");
       for (let i = 0; i < words.length; i++) {
@@ -166,13 +166,12 @@ app.post('/v1/chat/completions', async (req, reply) => {
           model: response.model,
           choices: [
             {
-              index: response.choices[0].index,
               delta: { role: "assistant", content: word },
               finish_reason: null,
             },
           ],
         };
-        reply.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        reply.send(`data: ${JSON.stringify(chunk)}\n\n`);
       }
 
       const doneChunk = {
@@ -182,15 +181,13 @@ app.post('/v1/chat/completions', async (req, reply) => {
         model: response.model,
         choices: [
           {
-            index: response.choices[0].index,
             delta: {},
             finish_reason: "stop",
           },
         ],
       };
-      reply.raw.write(`data: ${JSON.stringify(doneChunk)}\n\n`);
-      reply.raw.write('data: [DONE]\n\n');
-      reply.raw.end();
+      reply.send(`data: ${JSON.stringify(doneChunk)}\n\n`);
+      reply.send('data: [DONE]\n\n');
     } else {
       reply.send(response);
     }
@@ -223,12 +220,9 @@ app.listen({ port: process.env.PORT, host: '0.0.0.0' }, (err, address) => {
 });
 
 async function instructChatCompletion(server, payload) {
-  const messages = payload.messages;
-
-  // Translate OpenAI payload to server payload
   const serverPayload = {
     sender: "User",
-    text: messages[messages.length - 1].content,
+    text: payload.content,
     current: true,
     isCreatedByUser: true,
     parentMessageId: "00000000-0000-0000-0000-000000000000",
@@ -246,13 +240,11 @@ async function instructChatCompletion(server, payload) {
     token: null
   };
 
-  // Send translated payload to server
   const response = await axios.post(server.url, {
     serverId: server.id,
     payload: serverPayload
   }, { headers: server.headers });
 
-  // Translate server response to OpenAI API response format
   return {
     choices: [
       {
