@@ -224,14 +224,42 @@ app.listen({ port: process.env.PORT, host: '0.0.0.0' }, (err, address) => {
 
 async function instructChatCompletion(server, payload) {
   const messages = payload.messages;
-  for (let i = 0; i < messages.length; i++) {
-    const message = messages[i];
-    if (message.role === "user") {
-      const response = await axios.post(server.url, { message: message.content }, { headers: server.headers });
-      const responseMessage = response.data.message;
-    }
-  }
-  return { choices: [{ content: "Completion message" }] };
+
+  // Translate OpenAI payload to server payload
+  const serverPayload = {
+    sender: "User",
+    text: messages[messages.length - 1].content,
+    current: true,
+    isCreatedByUser: true,
+    parentMessageId: "00000000-0000-0000-0000-000000000000",
+    conversationId: null,
+    messageId: generateId(),
+    overrideParentMessageId: null,
+    endpoint: "openAI",
+    model: payload.model,
+    chatGptLabel: null,
+    promptPrefix: null,
+    temperature: 1,
+    top_p: 1,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+    token: null
+  };
+
+  // Send translated payload to server
+  const response = await axios.post(server.url, {
+    serverId: server.id,
+    payload: serverPayload
+  }, { headers: server.headers });
+
+  // Translate server response to OpenAI API response format
+  return {
+    choices: [
+      {
+        content: response.data.message.content
+      }
+    ]
+  };
 }
 
 function generateId() {
