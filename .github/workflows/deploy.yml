@@ -1,0 +1,35 @@
+name: 'Deploy'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Cloning repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Push frontend to dokku
+        uses: obrassard/action-dokku-deploy@v1.0.2
+        with:
+          dokku_repo: 'ssh://dokku@git.birdup.link/ai-tunnel-frontend'
+          ssh_key: ${{ secrets.SSH_KEY }}
+          deploy_branch: 'main'
+
+      - name: Push backend to dokku
+        uses: obrassard/action-dokku-deploy@v1.0.2
+        with:
+          dokku_repo: 'ssh://dokku@git.birdup.link/ai-tunnel-backend'
+          ssh_key: ${{ secrets.SSH_KEY }}
+          deploy_branch: 'main'
