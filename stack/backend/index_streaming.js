@@ -3,6 +3,7 @@ const axios = require('axios');
 const fs = require('fs');
 const stream = require('stream');
 const { createLogger, transports } = require('winston');
+const cors = require('@fastify/cors');
 
 const app = fastify();
 
@@ -16,9 +17,9 @@ const logger = createLogger({
 const serversData = fs.readFileSync('data/servers.json', 'utf-8');
 let servers = serversData ? JSON.parse(serversData).servers : [];
 
-app.register(require('@fastify/cors'));
+app.register(cors);
 
-app.addHook('preHandler', (req, reply, done) => {
+app.addHook('preHandler', async (req, reply) => {
   if (req.url.startsWith('/v1/chat/completions')) {
     if (servers.length === 0) {
       reply.code(500).send({ message: 'No servers available' });
@@ -39,7 +40,6 @@ app.addHook('preHandler', (req, reply, done) => {
       });
     }
   }
-  done();
 });
 
 app.get('/servers', async (req, reply) => {
@@ -142,19 +142,18 @@ app.post('/v1/chat/completions', async (req, reply) => {
       model: payload.model,
       choices: [
         {
+          finish_reason: "stop",
           message: {
             role: "assistant",
             content: responseMessage.choices[0].content,
-          },
-          finish_reason: "stop",
-        },
-      ],
+          }
+        }
+      ]
     };
 
     if (payload.stream) {
-      reply
-        .type("text/event-stream")
-        .send(`data: ${JSON.stringify(response)}\n\n`);
+      reply.header('Content-Type', 'text/event-stream');
+      reply.send(`data: ${JSON.stringify(response)}\n\n`);
 
       const words = responseMessage.choices[0].content.split(" ");
       for (let i = 0; i < words.length; i++) {
@@ -166,10 +165,10 @@ app.post('/v1/chat/completions', async (req, reply) => {
           model: response.model,
           choices: [
             {
-              delta: { role: "assistant", content: word },
               finish_reason: null,
-            },
-          ],
+              delta: { role: "assistant", content: word }
+            }
+          ]
         };
         reply.send(`data: ${JSON.stringify(chunk)}\n\n`);
       }
@@ -181,10 +180,10 @@ app.post('/v1/chat/completions', async (req, reply) => {
         model: response.model,
         choices: [
           {
-            delta: {},
             finish_reason: "stop",
-          },
-        ],
+            delta: {}
+          }
+        ]
       };
       reply.send(`data: ${JSON.stringify(doneChunk)}\n\n`);
       reply.send('data: [DONE]\n\n');
@@ -209,7 +208,7 @@ app.post('/curl', async (req, reply) => {
   }
 });
 
-app.listen({ port: process.env.PORT, host: '0.0.0.0' }, (err, address) => {
+app.listen(process.env.PORT, '0.0.0.0', (err, address) => {
   if (err) {
     console.error(err);
     logger.error(`Error starting server: ${err}`);
@@ -222,7 +221,7 @@ app.listen({ port: process.env.PORT, host: '0.0.0.0' }, (err, address) => {
 async function instructChatCompletion(server, payload) {
   const serverPayload = {
     sender: "User",
-    text: payload.content,
+    content: payload.content,
     current: true,
     isCreatedByUser: true,
     parentMessageId: "00000000-0000-0000-0000-000000000000",
@@ -240,18 +239,23 @@ async function instructChatCompletion(server, payload) {
     token: null
   };
 
-  const response = await axios.post(server.url, {
-    serverId: server.id,
-    payload: serverPayload
-  }, { headers: server.headers });
+  try {
+    const response = await axios.post(server.url, serverPayload, { headers: server.headers });
 
-  return {
-    choices: [
-      {
-        content: response.data.message.content
-      }
-    ]
-  };
+    if (response.data && response.data.message && response.data.message.content) {
+      return {
+        choices: [
+          {
+            content: response.data.message.content
+          }
+        ]
+      };
+    } else {
+      throw new Error('Invalid response from server');
+    }
+  } catch (error) {
+    throw new Error('Error with chat completions: ' + error.message);
+  }
 }
 
 function generateId() {
